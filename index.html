@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<title>RocketBoat</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f6f1e6;color:#171717;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none;user-select:none}canvas{display:block;width:100vw;height:100vh}.hud{position:fixed;left:10px;right:10px;top:10px;display:grid;gap:8px;z-index:2}.row{display:grid;grid-template-columns:45px 1fr 35px;gap:8px;align-items:center;font-weight:900}.bar{height:14px;border:3px solid #171717;border-radius:99px;background:white;overflow:hidden}.fill{height:100%;background:#67bd6a;transform-origin:left}.enemy .fill{background:#ff6868}.menu{position:fixed;right:10px;bottom:10px;display:grid;gap:8px;z-index:3}.btn{border:4px solid #171717;border-radius:99px;background:#fffdf5;padding:10px 14px;font-weight:900;box-shadow:5px 5px 0 #0002}.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #0002}.overlay{position:fixed;inset:0;display:none;place-items:center;background:#0003;z-index:5}.card{max-width:360px;margin:16px;padding:22px;border:5px solid #171717;border-radius:22px;background:#f6f1e6;text-align:center;box-shadow:10px 10px 0 #0003}.card h1{margin:0 0 8px}.hint{position:fixed;left:12px;right:12px;bottom:12px;text-align:center;font-weight:900;opacity:.78;pointer-events:none}.show{display:grid}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud"><div class="row"><div>YOU</div><div class="bar"><div id="php" class="fill"></div></div><div id="ptext">100</div></div><div class="row enemy"><div>CPU</div><div class="bar"><div id="ehp" class="fill"></div></div><div id="etext">100</div></div></div>
+<div class="menu"><button class="btn" id="reset">Reset</button></div><div class="hint">Drag anywhere to slingshot. Use the BOOST pad to rocket around.</div>
+<div class="overlay" id="over"><div class="card"><h1 id="title">You win!</h1><p id="msg">The other boat sank.</p><button class="btn" id="again">Play Again</button></div></div>
+<script>
+(function(){
+const c=document.getElementById('game'),x=c.getContext('2d'),php=document.getElementById('php'),ehp=document.getElementById('ehp'),ptext=document.getElementById('ptext'),etext=document.getElementById('etext'),over=document.getElementById('over'),title=document.getElementById('title'),msg=document.getElementById('msg');
+let W,H,D=1,t=0,water=[],boats=[],shots=[],splashes=[],mines=[],pointer={down:false,x:0,y:0,sx:0,sy:0},boost={down:false,x:0,y:0,dx:0,dy:0},gameOver=false;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function rand(a,b){return a+Math.random()*(b-a)}
+function resize(){D=clamp(devicePixelRatio||1,1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0);reset(true)}
+function wy(px){return H*.66+Math.sin(px*.012+t*.035)*10+Math.sin(px*.035-t*.02)*4}
+function size(){return clamp(W*.035,18,38)}
+function reset(){boats=[{x:W*.22,y:wy(W*.22)-45,vx:0,vy:0,a:0,av:0,hp:100,col:'#ff8d3a',face:1},{x:W*.78,y:wy(W*.78)-45,vx:0,vy:0,a:0,av:0,hp:100,col:'#5b8cff',face:-1}];shots=[];splashes=[];mines=[];for(let i=0;i<5;i++)mines.push({x:W*(.18+i*.16)+rand(-20,20),y:H*.78+rand(-35,35),r:16,live:true});gameOver=false;over.classList.remove('show');hud()}
+function hud(){php.style.transform='scaleX('+(boats[0].hp/100)+')';ehp.style.transform='scaleX('+(boats[1].hp/100)+')';ptext.textContent=Math.ceil(boats[0].hp);etext.textContent=Math.ceil(boats[1].hp)}
+function pad(){return{x:W-78,y:H-86,r:48}}
+function fire(owner,dx,dy,power){let b=boats[owner],s=size(),m=Math.hypot(dx,dy)||1;shots.push({x:b.x,y:b.y-s*.9,vx:dx/m*(8+power*.13),vy:dy/m*(8+power*.13),r:7,own:owner,life:5,wet:false})}
+function playerFire(){let dx=pointer.sx-pointer.x,dy=pointer.sy-pointer.y,p=Math.hypot(dx,dy);if(p>18)fire(0,dx,dy,clamp(p,0,140));pointer.down=false}
+function boom(mx,my){splashes.push({x:mx,y:my,r:8,life:25});for(let b of boats){let d=Math.hypot(b.x-mx,b.y-my),f=clamp(1-d/130,0,1);if(f){b.hp=clamp(b.hp-18*f,0,100);b.vx+=(b.x-mx)/Math.max(1,d)*4*f;b.vy+=(b.y-my)/Math.max(1,d)*4*f-2*f;b.av+=rand(-.2,.2)}}hud();check()}
+function check(){if(gameOver)return;if(boats[0].hp<=0||boats[1].hp<=0){gameOver=true;title.textContent=boats[1].hp<=0?'You win!':'You sank!';msg.textContent=boats[1].hp<=0?'The CPU boat is toast.':'The CPU got you.';over.classList.add('show')}}
+function update(){t++;let g=.18;for(let i=0;i<2;i++){let b=boats[i],s=size();let ctrl=i?ai(b):control();b.vx+=ctrl.x*.25*ctrl.p;b.vy+=ctrl.y*.25*ctrl.p;b.vy+=g;b.x+=b.vx;b.y+=b.vy;b.vx*=.992;b.vy*=.992;b.a+=b.av;b.av*=.96;let y=wy(b.x)-s*.4;if(b.y>y){b.y=y;b.vy*=-.18;b.vx*=.985;b.a*=.92;if(Math.abs(b.vy)>.5)splashes.push({x:b.x,y:y,r:5,life:18})}if(b.x<s){b.x=s;b.vx=Math.abs(b.vx)}if(b.x>W-s){b.x=W-s;b.vx=-Math.abs(b.vx)}if(i&&Math.random()<.012&&!gameOver){let dx=boats[0].x-b.x,dy=boats[0].y-b.y-50;fire(1,dx,dy,95)}}
+for(let sh of shots){sh.life-=1/60;sh.vy+=.15;sh.x+=sh.vx;sh.y+=sh.vy;if(sh.y>wy(sh.x)){sh.life=0;splashes.push({x:sh.x,y:wy(sh.x),r:4,life:16})}for(let i=0;i<2;i++){if(i!==sh.own&&Math.hypot(sh.x-boats[i].x,sh.y-boats[i].y)<size()){boats[i].hp=clamp(boats[i].hp-12,0,100);boats[i].vx+=sh.vx*.12;boats[i].vy+=sh.vy*.08;sh.life=0;splashes.push({x:sh.x,y:sh.y,r:7,life:22});hud();check()}}for(let m of mines){if(m.live&&Math.hypot(sh.x-m.x,sh.y-m.y)<m.r+sh.r){m.live=false;sh.life=0;boom(m.x,m.y)}}}shots=shots.filter(s=>s.life>0&&s.x>-60&&s.x<W+60&&s.y<H+80);splashes=splashes.filter(s=>--s.life>0)}
+function control(){let p=pad();if(!boost.down)return{x:0,y:0,p:0};let dx=boost.x-p.x,dy=boost.y-p.y,l=Math.hypot(dx,dy)||1;return{x:dx/l,y:dy/l,p:clamp(l/p.r,0,1)}}
+function ai(b){let tx=W*.72+Math.sin(t*.025)*45,ty=wy(b.x)-70,dx=tx-b.x,dy=ty-b.y,l=Math.hypot(dx,dy)||1;return{x:dx/l,y:dy/l,p:.8}}
+function drawBoat(b){let s=size();x.save();x.translate(b.x,b.y);x.rotate(b.a);x.lineWidth=4;x.strokeStyle='#171717';x.fillStyle=b.col;x.beginPath();x.moveTo(-s*1.2,0);x.quadraticCurveTo(0,s*.8,s*1.2,0);x.lineTo(s*.9,s*.35);x.lineTo(-s*.9,s*.35);x.closePath();x.fill();x.stroke();x.fillStyle='#fff7df';x.beginPath();x.moveTo(0,-s*1.55);x.lineTo(0,-s*.2);x.lineTo(s*b.face*.85,-s*.35);x.closePath();x.fill();x.stroke();let ct=control();if(b===boats[0]&&ct.p){x.fillStyle='#ffb13d';x.beginPath();x.moveTo(-ct.x*s*.6,-ct.y*s*.6);x.lineTo(-ct.x*s*1.8+ct.y*7,-ct.y*s*1.8-ct.x*7);x.lineTo(-ct.x*s*1.8-ct.y*7,-ct.y*s*1.8+ct.x*7);x.closePath();x.fill();x.stroke()}x.restore()}
+function draw(){x.clearRect(0,0,W,H);x.fillStyle='#f6f1e6';x.fillRect(0,0,W,H);x.fillStyle='#cceff8';x.beginPath();x.moveTo(0,wy(0));for(let i=0;i<=W;i+=12)x.lineTo(i,wy(i));x.lineTo(W,H);x.lineTo(0,H);x.fill();x.strokeStyle='#171717';x.lineWidth=3;x.stroke();for(let m of mines){if(!m.live)continue;x.strokeStyle='#171717';x.lineWidth=2;x.beginPath();x.moveTo(m.x,H);x.lineTo(m.x,m.y);x.stroke();x.fillStyle='#333';x.beginPath();x.arc(m.x,m.y,m.r,0,7);x.fill();x.stroke()}for(let b of boats)drawBoat(b);for(let sh of shots){x.fillStyle='#4b4037';x.beginPath();x.arc(sh.x,sh.y,sh.r,0,7);x.fill();x.stroke()}for(let s of splashes){x.strokeStyle='#087ca7';x.lineWidth=3;x.globalAlpha=s.life/25;x.beginPath();x.arc(s.x,s.y,s.r+(25-s.life)*2,0,7);x.stroke();x.globalAlpha=1}if(pointer.down){x.strokeStyle='#171717';x.lineWidth=4;x.beginPath();x.moveTo(pointer.sx,pointer.sy);x.lineTo(pointer.x,pointer.y);x.stroke()}let p=pad();x.fillStyle='#fffdf5aa';x.strokeStyle='#171717';x.lineWidth=4;x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill();x.stroke();x.font='900 12px system-ui';x.textAlign='center';x.fillStyle='#171717';x.fillText('BOOST',p.x,p.y-p.r-8);if(boost.down){x.fillStyle='#ffb13d';x.beginPath();x.arc(boost.x,boost.y,18,0,7);x.fill();x.stroke()}}
+function loop(){update();draw();requestAnimationFrame(loop)}
+function pt(e){let r=c.getBoundingClientRect(),q=e.touches?e.touches[0]:e;return{x:q.clientX-r.left,y:q.clientY-r.top}}
+function down(e){let p=pt(e),pa=pad();if(Math.hypot(p.x-pa.x,p.y-pa.y)<pa.r*1.3){boost.down=true;boost.x=p.x;boost.y=p.y}else{pointer.down=true;pointer.sx=pointer.x=p.x;pointer.sy=pointer.y=p.y}e.preventDefault()}
+function move(e){let p=pt(e);if(boost.down){boost.x=p.x;boost.y=p.y}if(pointer.down){pointer.x=p.x;pointer.y=p.y}e.preventDefault()}
+function up(e){if(pointer.down)playerFire();boost.down=false;e&&e.preventDefault()}
+c.addEventListener('pointerdown',down);addEventListener('pointermove',move);addEventListener('pointerup',up);addEventListener('pointercancel',up);document.getElementById('reset').onclick=()=>reset();document.getElementById('again').onclick=()=>reset();addEventListener('resize',resize);resize();loop();
+})();
+</script>
+</body>
+</html>
