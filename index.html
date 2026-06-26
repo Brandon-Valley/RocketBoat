@@ -31,104 +31,22 @@
 (function () {
   "use strict";
 
-  const sourceUrl = "https://cdn.jsdelivr.net/gh/Brandon-Valley/RocketBoat@2ce225f31fa0212dec3a681364853204f1ba61d4/index.html";
-  const repoUrl = "https://github.com/Brandon-Valley/RocketBoat";
-  const githubSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.68.42.36.79 1.07.79 2.16v3.2c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>';
-  const gearSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.4.11-.61l-1.92-3.32a.48.48 0 0 0-.58-.22l-2.39.96c-.5-.38-1.03-.69-1.63-.94L14.4 2.8a.49.49 0 0 0-.48-.4h-3.84a.49.49 0 0 0-.48.4l-.36 2.55c-.59.24-1.13.56-1.63.94l-2.39-.96a.48.48 0 0 0-.58.22L2.72 8.87c-.12.21-.07.47.11.61l2.03 1.58c-.04.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.48.48 0 0 0-.11.61l1.92 3.32c.12.21.37.3.58.22l2.39-.96c.5.38 1.04.7 1.63.94l.36 2.55c.04.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.55c.59-.24 1.13-.56 1.63-.94l2.39.96c.22.08.46-.01.58-.22l1.92-3.32a.48.48 0 0 0-.11-.61l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"/></svg>';
-  const dotsSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a2.15 2.15 0 1 1 4.3 0A2.15 2.15 0 0 1 5 12Zm4.85 0a2.15 2.15 0 1 1 4.3 0 2.15 2.15 0 0 1-4.3 0Zm4.85 0a2.15 2.15 0 1 1 4.3 0 2.15 2.15 0 0 1-4.3 0Z"/></svg>';
+  const previousUrl = "https://cdn.jsdelivr.net/gh/Brandon-Valley/RocketBoat@a9aa88764fa50f9db95ee9ea30f322f75945039c/index.html";
 
-  function patchGameHtml(html) {
-    html = html.replace(
-      'grid-template-columns: minmax(0, 1fr) auto;',
-      'grid-template-columns: minmax(0, 1fr) auto auto;'
-    );
-
-    html = html.replace(
-      'button:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 rgba(0,0,0,.17); }',
-      'button:active, .circleIconBtn:active, .morePill:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 rgba(0,0,0,.17); }'
-    );
-
-    html = html.replace(
-      '  #resetBtn {\n    min-width: 76px;\n    padding-left: 10px;\n    padding-right: 10px;\n    white-space: nowrap;\n  }',
-      '  #resetBtn {\n    min-width: 76px;\n    padding-left: 10px;\n    padding-right: 10px;\n    white-space: nowrap;\n  }\n  .circleIconBtn {\n    appearance: none;\n    border: 4px solid var(--ink);\n    background: #fffdf5;\n    color: var(--ink);\n    border-radius: 999px;\n    box-shadow: 5px 5px 0 rgba(0,0,0,.17);\n    cursor: pointer;\n    width: 48px;\n    height: 48px;\n    min-width: 48px;\n    padding: 0;\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n    text-decoration: none;\n  }\n  .circleIconBtn svg {\n    width: 31px;\n    height: 31px;\n    display: block;\n    fill: currentColor;\n  }\n  #moreOverlay, #settingsOverlay {\n    position: fixed;\n    inset: 0;\n    z-index: 8;\n    display: none;\n    background: rgba(23,23,23,.28);\n    padding: 16px;\n  }\n  #moreOverlay.show, #settingsOverlay.show { display: block; }\n  .morePanel, .settingsPanel {\n    position: absolute;\n    left: 50%;\n    top: 50%;\n    transform: translate(-50%, -50%);\n    width: min(440px, calc(100vw - 32px));\n    border: 5px solid var(--ink);\n    border-radius: 24px;\n    background: var(--paper);\n    box-shadow: 10px 10px 0 rgba(0,0,0,.22);\n    padding: 18px;\n  }\n  .morePanel h2, .settingsPanel h2 {\n    margin: 0 0 12px;\n    font-size: 28px;\n  }\n  .morePill {\n    width: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: flex-start;\n    gap: 12px;\n    text-decoration: none;\n    margin: 10px 0;\n    padding: 12px 14px;\n    text-align: left;\n  }\n  .morePill svg {\n    width: 28px;\n    height: 28px;\n    fill: currentColor;\n    flex: 0 0 auto;\n  }\n  .settingRow {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 12px;\n    border: 3px solid var(--ink);\n    border-radius: 18px;\n    background: #fffdf5;\n    padding: 12px;\n    margin: 10px 0;\n    font-weight: 950;\n  }\n  .settingRow small {\n    display: block;\n    margin-top: 3px;\n    font-size: 11px;\n    opacity: .72;\n    font-weight: 800;\n  }\n  .settingToggle {\n    min-width: 72px;\n    padding: 8px 10px;\n    font-size: 14px;\n  }\n  #closeMoreBtn, #closeSettingsBtn {\n    width: 100%;\n    margin-top: 10px;\n  }'
-    );
-
-    html = html.replace(
-      '    #resetBtn { min-width: 62px; padding-left: 7px; padding-right: 7px; }',
-      '    #resetBtn { min-width: 62px; padding-left: 7px; padding-right: 7px; }\n    .circleIconBtn { width: 44px; height: 44px; min-width: 44px; }\n    .circleIconBtn svg { width: 29px; height: 29px; }'
-    );
-
-    html = html.replace(
-      '    #resetBtn { min-width: 56px; padding: 6px 6px; font-size: 12px; border-width: 3px; box-shadow: 3px 3px 0 rgba(0,0,0,.17); }',
-      '    #resetBtn { min-width: 56px; padding: 6px 6px; font-size: 12px; border-width: 3px; box-shadow: 3px 3px 0 rgba(0,0,0,.17); }\n    .circleIconBtn { width: 38px; height: 38px; min-width: 38px; border-width: 3px; box-shadow: 3px 3px 0 rgba(0,0,0,.17); }\n    .circleIconBtn svg { width: 26px; height: 26px; }\n    .morePanel, .settingsPanel { padding: 14px; }\n    .morePanel h2, .settingsPanel h2 { font-size: 24px; }\n    .settingRow { padding: 10px; }'
-    );
-
-    html = html.replace(
-      '    <button id="resetBtn">Reset</button>',
-      '    <button id="resetBtn">Reset</button>\n    <button id="moreBtn" class="circleIconBtn" aria-label="Open more options" title="More options">' + dotsSvg + '</button>'
-    );
-
-    html = html.replace(
-      '<div class="overlay" id="overlay">',
-      '<div id="moreOverlay" aria-hidden="true">\n  <div class="morePanel" role="dialog" aria-modal="true" aria-labelledby="moreTitle">\n    <h2 id="moreTitle">More options</h2>\n    <button id="openSettingsBtn" class="morePill" type="button">' + gearSvg + '<span>Settings</span></button>\n    <a id="githubBtn" class="morePill" href="' + repoUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open GitHub repository" title="Open GitHub repository">' + githubSvg + '<span>GitHub</span></a>\n    <button id="closeMoreBtn" type="button">Resume</button>\n  </div>\n</div>\n\n<div id="settingsOverlay" aria-hidden="true">\n  <div class="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">\n    <h2 id="settingsTitle">Settings</h2>\n    <div class="settingRow">\n      <div>Balloons<small>Turn hot air balloons and bombs on or off.</small></div>\n      <button class="settingToggle active" id="balloonsToggle" type="button">ON</button>\n    </div>\n    <div class="settingRow">\n      <div>Infinite health<small>Keeps your boat at 100 health.</small></div>\n      <button class="settingToggle" id="infiniteHealthToggle" type="button">OFF</button>\n    </div>\n    <button id="closeSettingsBtn" type="button">Resume</button>\n  </div>\n</div>\n\n<div class="overlay" id="overlay">'
-    );
-
-    html = html.replace(
-      '  const resetBtn = document.getElementById("resetBtn");\n  const playAgainBtn = document.getElementById("playAgainBtn");',
-      '  const resetBtn = document.getElementById("resetBtn");\n  const moreBtn = document.getElementById("moreBtn");\n  const moreOverlay = document.getElementById("moreOverlay");\n  const closeMoreBtn = document.getElementById("closeMoreBtn");\n  const openSettingsBtn = document.getElementById("openSettingsBtn");\n  const settingsOverlay = document.getElementById("settingsOverlay");\n  const closeSettingsBtn = document.getElementById("closeSettingsBtn");\n  const balloonsToggle = document.getElementById("balloonsToggle");\n  const infiniteHealthToggle = document.getElementById("infiniteHealthToggle");\n  const playAgainBtn = document.getElementById("playAgainBtn");'
-    );
-
-    html = html.replace(
-      '  let lastShotTime = 0;\n',
-      '  let lastShotTime = 0;\n  let moreOpen = false;\n  let settingsOpen = false;\n  const gameSettings = { balloons: true, infiniteHealth: false };\n'
-    );
-
-    html = html.replace(
-      '  function spawnBalloon() {\n    if (!W || !H || gameOver) return;',
-      '  function spawnBalloon() {\n    if (!gameSettings.balloons) return;\n    if (!W || !H || gameOver) return;'
-    );
-
-    html = html.replace(
-      '  function updateBalloons(dt, now) {\n    balloonTimer -= dt;',
-      '  function updateBalloons(dt, now) {\n    if (!gameSettings.balloons) {\n      balloons = [];\n      bombs = [];\n      return;\n    }\n    balloonTimer -= dt;'
-    );
-
-    html = html.replace(
-      '  function updateHud() {\n    const p = Math.round(boats[0] ? boats[0].hp : 100);',
-      '  function updateHud() {\n    if (gameSettings.infiniteHealth && boats[0]) boats[0].hp = 100;\n    const p = Math.round(boats[0] ? boats[0].hp : 100);'
-    );
-
-    html = html.replace(
-      '  function checkGameOver() {\n    if (gameOver) return;',
-      '  function checkGameOver() {\n    if (gameSettings.infiniteHealth && boats[0]) boats[0].hp = 100;\n    if (gameOver) return;'
-    );
-
-    html = html.replace(
-      '  function update(dt, now) {\n    if (gameOver) return;',
-      '  function update(dt, now) {\n    if (gameOver || moreOpen || settingsOpen) return;'
-    );
-
-    html = html.replace(
-      '  // Button/UI handlers.\n',
-      '  function pauseUiInput() {\n    closeStagePopover();\n    clearBooster();\n    pointer.down = false;\n    pointer.id = null;\n  }\n\n  function refreshSettingsUI() {\n    balloonsToggle.textContent = gameSettings.balloons ? "ON" : "OFF";\n    balloonsToggle.classList.toggle("active", gameSettings.balloons);\n    infiniteHealthToggle.textContent = gameSettings.infiniteHealth ? "ON" : "OFF";\n    infiniteHealthToggle.classList.toggle("active", gameSettings.infiniteHealth);\n    updateHud();\n  }\n\n  function openMore() {\n    moreOpen = true;\n    settingsOpen = false;\n    pauseUiInput();\n    settingsOverlay.classList.remove("show");\n    settingsOverlay.setAttribute("aria-hidden", "true");\n    moreOverlay.classList.add("show");\n    moreOverlay.setAttribute("aria-hidden", "false");\n  }\n\n  function closeMore() {\n    moreOpen = false;\n    moreOverlay.classList.remove("show");\n    moreOverlay.setAttribute("aria-hidden", "true");\n    last = performance.now();\n  }\n\n  function openSettings() {\n    moreOpen = false;\n    settingsOpen = true;\n    pauseUiInput();\n    moreOverlay.classList.remove("show");\n    moreOverlay.setAttribute("aria-hidden", "true");\n    settingsOverlay.classList.add("show");\n    settingsOverlay.setAttribute("aria-hidden", "false");\n    refreshSettingsUI();\n  }\n\n  function closeSettings() {\n    settingsOpen = false;\n    settingsOverlay.classList.remove("show");\n    settingsOverlay.setAttribute("aria-hidden", "true");\n    last = performance.now();\n  }\n\n  // Button/UI handlers.\n'
-    );
-
-    html = html.replace(
-      '  resetBtn.addEventListener("click", function() { closeStagePopover(); reset(true); });\n  playAgainBtn.addEventListener("click", function() { reset(true); });',
-      '  resetBtn.addEventListener("click", function() { closeStagePopover(); closeMore(); closeSettings(); reset(true); });\n  moreBtn.addEventListener("click", function(e) { e.stopPropagation(); openMore(); });\n  moreOverlay.addEventListener("click", function(e) { if (e.target === moreOverlay) closeMore(); e.stopPropagation(); });\n  closeMoreBtn.addEventListener("click", closeMore);\n  openSettingsBtn.addEventListener("click", openSettings);\n  settingsOverlay.addEventListener("click", function(e) { if (e.target === settingsOverlay) closeSettings(); e.stopPropagation(); });\n  closeSettingsBtn.addEventListener("click", closeSettings);\n  balloonsToggle.addEventListener("click", function() { gameSettings.balloons = !gameSettings.balloons; if (!gameSettings.balloons) { balloons = []; bombs = []; } refreshSettingsUI(); });\n  infiniteHealthToggle.addEventListener("click", function() { gameSettings.infiniteHealth = !gameSettings.infiniteHealth; refreshSettingsUI(); });\n  playAgainBtn.addEventListener("click", function() { reset(true); });'
-    );
-
-    return html;
+  function improveMorePillStyle(html) {
+    const oldStyle = '.morePill {\\n    width: 100%;\\n    display: flex;\\n    align-items: center;\\n    justify-content: flex-start;\\n    gap: 12px;\\n    text-decoration: none;\\n    margin: 10px 0;\\n    padding: 12px 14px;\\n    text-align: left;\\n  }';
+    const newStyle = '.morePill {\\n    appearance: none;\\n    border: 4px solid var(--ink);\\n    background: #fffdf5;\\n    color: var(--ink);\\n    border-radius: 999px;\\n    box-shadow: 5px 5px 0 rgba(0,0,0,.17);\\n    cursor: pointer;\\n    font-weight: 950;\\n    font-size: clamp(14px, 3.8vw, 18px);\\n    width: 100%;\\n    display: flex;\\n    align-items: center;\\n    justify-content: flex-start;\\n    gap: 12px;\\n    text-decoration: none;\\n    margin: 10px 0;\\n    padding: 12px 14px;\\n    text-align: left;\\n  }';
+    return html.replace(oldStyle, newStyle);
   }
 
-  fetch(sourceUrl, { cache: "no-store" })
+  fetch(previousUrl, { cache: "no-store" })
     .then(function (response) {
       if (!response.ok) throw new Error("Could not load game source: " + response.status);
       return response.text();
     })
     .then(function (html) {
       document.open();
-      document.write(patchGameHtml(html));
+      document.write(improveMorePillStyle(html));
       document.close();
     })
     .catch(function (error) {
