@@ -1,0 +1,86 @@
+name: Add GitHub button
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Add GitHub repo button') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch index.html
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          if 'id="githubBtn"' not in text:
+              text = text.replace(
+                  'grid-template-columns: minmax(0, 1fr) auto;',
+                  'grid-template-columns: minmax(0, 1fr) auto auto;',
+                  1,
+              )
+              css_anchor = '''  #resetBtn {
+    min-width: 76px;
+    padding-left: 10px;
+    padding-right: 10px;
+    white-space: nowrap;
+  }
+'''
+              css_replacement = css_anchor + '''  #githubBtn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  #githubBtn svg {
+    width: 31px;
+    height: 31px;
+    display: block;
+    fill: currentColor;
+  }
+'''
+              if css_anchor not in text:
+                  raise SystemExit('Could not find reset button CSS anchor')
+              text = text.replace(css_anchor, css_replacement, 1)
+              mobile_anchor = '    #resetBtn { min-width: 62px; padding-left: 7px; padding-right: 7px; }\n'
+              mobile_replacement = mobile_anchor + '    #githubBtn { width: 44px; height: 44px; min-width: 44px; }\n    #githubBtn svg { width: 29px; height: 29px; }\n'
+              if mobile_anchor in text:
+                  text = text.replace(mobile_anchor, mobile_replacement, 1)
+              tiny_anchor = '    #resetBtn { min-width: 56px; padding: 6px 6px; font-size: 12px; border-width: 3px; box-shadow: 3px 3px 0 rgba(0,0,0,.17); }\n'
+              tiny_replacement = tiny_anchor + '    #githubBtn { width: 38px; height: 38px; min-width: 38px; border-width: 3px; box-shadow: 3px 3px 0 rgba(0,0,0,.17); }\n    #githubBtn svg { width: 26px; height: 26px; }\n'
+              if tiny_anchor in text:
+                  text = text.replace(tiny_anchor, tiny_replacement, 1)
+              html_anchor = '    <button id="resetBtn">Reset</button>\n'
+              html_replacement = html_anchor + '    <a id="githubBtn" href="https://github.com/Brandon-Valley/RocketBoat" target="_blank" rel="noopener noreferrer" aria-label="Open GitHub repository" title="Open GitHub repository"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.68.42.36.79 1.07.79 2.16v3.2c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg></a>\n'
+              if html_anchor not in text:
+                  raise SystemExit('Could not find reset button HTML anchor')
+              text = text.replace(html_anchor, html_replacement, 1)
+              path.write_text(text, encoding='utf-8')
+          workflow_path = Path('.github/workflows/add-github-button.yml')
+          if workflow_path.exists():
+              workflow_path.unlink()
+          PY
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/add-github-button.yml
+          git commit -m "Add GitHub repo button"
+          git push
